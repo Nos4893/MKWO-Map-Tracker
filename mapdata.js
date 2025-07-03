@@ -85,7 +85,7 @@ export const mapNames = {
         "Kino Buu Huu",
         "Knochentrocken-Vulkan",
         "Kuhmuh-Weide",
-        "KartSchoko-Sumpf",
+        "Schoko-Sumpf",
         "Toads Fabrik",
         "Bowsers Festung",
         "Baumwipfelpfad",
