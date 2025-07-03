@@ -145,7 +145,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const td = document.createElement('td');
                 td.innerText = mapNamesArr[mapIdx];
                 td.id = `cell-${mapIdx}`;
+                td.style.cursor = 'pointer';
                 if (disabled[mapIdx]) td.classList.add('crossed');
+                td.addEventListener('click', () => toggleMap(mapIdx));
                 tr.appendChild(td);
             }
             tbody.appendChild(tr);
