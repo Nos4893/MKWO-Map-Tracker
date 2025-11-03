@@ -1,7 +1,15 @@
-
-// Cup names in different languages
 export const cupNames = {
     en: [
+        "Mushroom Cup",
+        "Flower Cup",
+        "Star Cup",
+        "Shell Cup",
+        "Banana Cup",
+        "Leaf Cup",
+        "Lightning Cup",
+        "Special Cup"
+    ],
+    enShort:[
         "Mushroom Cup",
         "Flower Cup",
         "Star Cup",
@@ -23,7 +31,6 @@ export const cupNames = {
     ]
 };
 
-// Map names in different languages
 export const mapNames = {
     en: [
         "Mario Bros. Circuit",
@@ -58,6 +65,40 @@ export const mapNames = {
         "Mario Circuit",
         "Peach Stadium (2)",
         "Rainbow Road"
+    ],
+    enShort: [
+        "MBC",
+        "CC",
+        "WS",
+        "DKS",
+        "rDH",
+        "rSGB",
+        "rWS",
+        "rAF",
+        "rDKP",
+        "SP",
+        "SHS",
+        "rWSY",
+        "rKTB",
+        "FO",
+        "CC2",
+        "PS",
+        "rPB",
+        "SSS",
+        "rDDJ",
+        "GBR",
+        "CCF",
+        "DD",
+        "BCi",
+        "DBB",
+        "rMMM",
+        "rCM",
+        "rTF",
+        "BC",
+        "AH",
+        "rMC",
+        "PS2",
+        "RR"
     ],
     de: [
         "Mario Bros.-Piste",
@@ -95,7 +136,6 @@ export const mapNames = {
     ]
 };
 
-// All button positions as { x: 50, y: 50 } for now
 export const buttonPositions = [
     { x: 24, y: 58.5 }, // 1
     { x: 39.5, y: 68.5 }, // 2
