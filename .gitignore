@@ -2,3 +2,5 @@
 /.vite/deps/package.json
 /Untitled.xcf
 /.idea/
+
+node_modules/
