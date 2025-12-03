@@ -6,6 +6,8 @@ const ROWS = 4;
 let currentTrackIndex = null;
 let playerCount = 12;
 let viewingTrackIndex = null;
+let team1Color = 'blue';
+let team2Color = 'red';
 
 let historyOrder = JSON.parse(localStorage.getItem('mk_track_history') || '[]');
 function saveHistory() { localStorage.setItem('mk_track_history', JSON.stringify(historyOrder)); }
@@ -79,7 +81,31 @@ function updateCompleteScore(){
     diffEl.textContent=(diff>0?'+':'')+diff;
     valuesEl.innerHTML=`<span class="own-points">${own}</span>:<span class="enemy-points">${enemy}</span>`;
 }
-function saveSelection(disabled, lang, showButtons){ localStorage.setItem('mk_tracker_state', JSON.stringify({ disabled, lang, showButtons, currentTrackIndex, playerCount })); }
+function saveSelection(disabled, lang, showButtons){ localStorage.setItem('mk_tracker_state', JSON.stringify({ disabled, lang, showButtons, currentTrackIndex, playerCount, team1Color, team2Color })); }
+
+function applyTeamColorsToCSS(){
+    const root = document.documentElement;
+    const palette = {
+        red:   { bg:'#4f1010', fg:'#e25d5d', border:'#b91e1e', chipBg:'#7a1d1d', chipFg:'#ffd1d1', chipBorder:'#d13d3d' },
+        blue:  { bg:'#10304f', fg:'#5dade2', border:'#1e6fb9', chipBg:'#1d4f7a', chipFg:'#bfe3ff', chipBorder:'#3d92d1' },
+        yellow:{ bg:'#4f4f10', fg:'#e2d95d', border:'#b9b41e', chipBg:'#7a7a1d', chipFg:'#fff8bf', chipBorder:'#d1ca3d' },
+        green: { bg:'#104f10', fg:'#5de25d', border:'#1eb91e', chipBg:'#1d7a1d', chipFg:'#bfffbf', chipBorder:'#3dd13d' },
+    };
+    const own = palette[team1Color] || palette.blue;
+    const enemy = palette[team2Color] || palette.red;
+    root.style.setProperty('--own-bg', own.bg);
+    root.style.setProperty('--own-fg', own.fg);
+    root.style.setProperty('--own-border', own.border);
+    root.style.setProperty('--own-chip-bg', own.chipBg);
+    root.style.setProperty('--own-chip-fg', own.chipFg);
+    root.style.setProperty('--own-chip-border', own.chipBorder);
+    root.style.setProperty('--enemy-bg', enemy.bg);
+    root.style.setProperty('--enemy-fg', enemy.fg);
+    root.style.setProperty('--enemy-border', enemy.border);
+    root.style.setProperty('--enemy-chip-bg', enemy.chipBg);
+    root.style.setProperty('--enemy-chip-fg', enemy.chipFg);
+    root.style.setProperty('--enemy-chip-border', enemy.chipBorder);
+}
 
 function renderHistory(){
     const ul=document.getElementById('track-history'); if(!ul) return; ul.innerHTML='';
@@ -87,9 +113,14 @@ function renderHistory(){
         const li=document.createElement('li'); li.className='track-history-item'; li.dataset.trackIndex=idx;
         const img=document.createElement('img'); img.src=`assets/tracks/${englishShortNames[idx]}.png`; img.alt=englishNames[idx];
         const shortSpan=document.createElement('span'); shortSpan.className='short-name'; shortSpan.textContent=englishShortNames[idx];
-        let own=0, enemy=0; const dist=pointsDistributions[playerCount];
-        if(trackPlacements[idx]) trackPlacements[idx].forEach((state,i)=>{ const pts=dist?dist[i]:0; if(state==='own') own+=pts; else if(state==='enemy') enemy+=pts; });
-        const scoreSpan=document.createElement('span'); scoreSpan.className='history-score'; scoreSpan.textContent=`${own}:${enemy}`;
+            let own=0, enemy=0; const dist=pointsDistributions[playerCount];
+            if(trackPlacements[idx]) trackPlacements[idx].forEach((state,i)=>{ const pts=dist?dist[i]:0; if(state==='own') own+=pts; else if(state==='enemy') enemy+=pts; });
+            const scoreSpan=document.createElement('span'); scoreSpan.className='history-score';
+            scoreSpan.innerHTML = `<span style="color: var(--own-fg); font-weight: 700;">${own}</span>:<span style="color: var(--enemy-fg); font-weight: 700;">${enemy}</span>`;
+            // Apply leading team color to the short name
+            if(own>enemy){ shortSpan.style.color = getComputedStyle(document.documentElement).getPropertyValue('--own-fg') || '#5dade2'; }
+            else if(enemy>own){ shortSpan.style.color = getComputedStyle(document.documentElement).getPropertyValue('--enemy-fg') || '#e25d5d'; }
+            else { shortSpan.style.color = '#ccc'; }
         li.appendChild(img); li.appendChild(shortSpan); li.appendChild(scoreSpan);
         li.addEventListener('click',()=>{ viewingTrackIndex = (viewingTrackIndex===idx? null: idx); updateTrackContainer(); renderHistory(); if(_renderButtons) _renderButtons(); });
         if(viewingTrackIndex===idx) li.classList.add('viewing');
@@ -101,9 +132,10 @@ function renderHistory(){
 _renderHistory = renderHistory;
 
 document.addEventListener('DOMContentLoaded', () => {
-    function loadState(){ const state=JSON.parse(localStorage.getItem('mk_tracker_state')||'{}'); return { disabled:Array.isArray(state.disabled)?state.disabled:Array(BUTTON_POSITIONS.length).fill(false), lang:state.lang||'en', showButtons:!!state.showButtons, currentTrackIndex:Number.isInteger(state.currentTrackIndex)?state.currentTrackIndex:null, playerCount:Number.isInteger(state.playerCount)?state.playerCount:12 }; }
-    let { disabled, lang, showButtons, currentTrackIndex: storedTrack, playerCount: storedPlayerCount } = loadState();
+    function loadState(){ const state=JSON.parse(localStorage.getItem('mk_tracker_state')||'{}'); return { disabled:Array.isArray(state.disabled)?state.disabled:Array(BUTTON_POSITIONS.length).fill(false), lang:state.lang||'en', showButtons:!!state.showButtons, currentTrackIndex:Number.isInteger(state.currentTrackIndex)?state.currentTrackIndex:null, playerCount:Number.isInteger(state.playerCount)?state.playerCount:12, team1Color: state.team1Color || 'blue', team2Color: state.team2Color || 'red' }; }
+    let { disabled, lang, showButtons, currentTrackIndex: storedTrack, playerCount: storedPlayerCount, team1Color: storedTeam1, team2Color: storedTeam2 } = loadState();
     currentLang=lang; currentTrackIndex=storedTrack; playerCount=storedPlayerCount;
+    team1Color=storedTeam1; team2Color=storedTeam2; applyTeamColorsToCSS();
     let mapNamesArr=getMapNames(); let cupNamesArr=getCupNames();
 
     const buttonsLayer=document.getElementById('buttons-layer');
@@ -170,6 +202,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Player count change
     const pcSelect=document.getElementById('player-count-select'); if(pcSelect){ pcSelect.value=String(playerCount); pcSelect.addEventListener('change', e=>{ const val=parseInt(e.target.value,10); if(!Number.isNaN(val)){ playerCount=val; for(let i=0;i<trackPlacements.length;i++){ if(trackPlacements[i]) ensurePlacementArray(i); } renderPlayerSlots(); updateScoreBoard(); updateCompleteScore(); renderHistory(); renderButtons(); saveState(); } }); }
 
+    // Team color selects
+    const t1Select=document.getElementById('team1-color-select'); if(t1Select){ t1Select.value=team1Color; t1Select.addEventListener('change', e=>{ team1Color=e.target.value; applyTeamColorsToCSS(); renderPlayerSlots(); updateScoreBoard(); renderHistory(); saveState(); }); }
+    const t2Select=document.getElementById('team2-color-select'); if(t2Select){ t2Select.value=team2Color; t2Select.addEventListener('change', e=>{ team2Color=e.target.value; applyTeamColorsToCSS(); renderPlayerSlots(); updateScoreBoard(); renderHistory(); saveState(); }); }
+
     // Zoom / Pan controls
     let scale=1, origin={x:0,y:0}, isDragging=false, last={x:0,y:0};
     const mapWrapper=document.getElementById('map-wrapper'); const mapImage=document.getElementById('map-image'); const buttonsLayerDiv=document.getElementById('buttons-layer');
@@ -190,7 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if(!confirm('Reset all war data? This will clear track history, placements, and current selection.')) return;
         viewingTrackIndex=null; currentTrackIndex=null; historyOrder=[]; saveHistory();
         for(let i=0;i<trackPlacements.length;i++) trackPlacements[i]=null;
-        playerCount=12; currentLang='en';
+        playerCount=12; currentLang='en'; team1Color='blue'; team2Color='red'; applyTeamColorsToCSS();
         renderButtons(); renderTable(); renderHistory(); updateTrackContainer(); renderPlayerSlots(); renderTableSelectionOnly(); saveState();
     });
 });

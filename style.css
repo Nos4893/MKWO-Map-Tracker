@@ -6,6 +6,23 @@ body {
     padding: 0;
 }
 
+:root {
+    /* color variables for team theming */
+    --own-bg: #10304f;
+    --own-fg: #5dade2;
+    --own-border: #1e6fb9;
+    --own-chip-bg: #1d4f7a;
+    --own-chip-fg: #bfe3ff;
+    --own-chip-border: #3d92d1;
+
+    --enemy-bg: #4f1010;
+    --enemy-fg: #e25d5d;
+    --enemy-border: #b91e1e;
+    --enemy-chip-bg: #7a1d1d;
+    --enemy-chip-fg: #ffd1d1;
+    --enemy-chip-border: #d13d3d;
+}
+
 .top{
     position: relative;
     width: 100vw;
@@ -255,8 +272,8 @@ body {
     align-items:center;
 }
 .player-slot img { filter: drop-shadow(0 0 2px #000); }
-.player-slot.own { background: #10304f; color: #5dade2; box-shadow: 0 0 0 2px #1e6fb9 inset; }
-.player-slot.enemy { background: #4f1010; color: #e25d5d; box-shadow: 0 0 0 2px #b91e1e inset; }
+.player-slot.own { background: var(--own-bg); color: var(--own-fg); box-shadow: 0 0 0 2px var(--own-border) inset; }
+.player-slot.enemy { background: var(--enemy-bg); color: var(--enemy-fg); box-shadow: 0 0 0 2px var(--enemy-border) inset; }
 .player-slot:hover { background: #2a2a2a; }
 .player-slot .slot-points {
   margin-left: auto;
@@ -274,25 +291,25 @@ body {
   transition: background .15s, color .15s, box-shadow .15s;
 }
 .player-slot.own .slot-points {
-  background:#1d4f7a;
-  color:#bfe3ff;
-  box-shadow:0 0 0 1px #3d92d1;
+    background: var(--own-chip-bg);
+    color: var(--own-chip-fg);
+    box-shadow: 0 0 0 1px var(--own-chip-border);
 }
 .player-slot.enemy .slot-points {
-  background:#7a1d1d;
-  color:#ffd1d1;
-  box-shadow:0 0 0 1px #d13d3d;
+    background: var(--enemy-chip-bg);
+    color: var(--enemy-chip-fg);
+    box-shadow: 0 0 0 1px var(--enemy-chip-border);
 }
 .player-slot:hover .slot-points { box-shadow:0 0 0 1px #555; }
 /* High contrast when selected */
-.player-slot.own:hover .slot-points { box-shadow:0 0 0 1px #5dade2; }
-.player-slot.enemy:hover .slot-points { box-shadow:0 0 0 1px #e25d5d; }
+.player-slot.own:hover .slot-points { box-shadow:0 0 0 1px var(--own-fg); }
+.player-slot.enemy:hover .slot-points { box-shadow:0 0 0 1px var(--enemy-fg); }
 
 /* Score coloring (re-added) */
-.score-values .own-points { color: #5dade2; }
-.score-values .enemy-points { color: #e25d5d; }
-.score-diff.positive { color: #5dade2; }
-.score-diff.negative { color: #e25d5d; }
+.score-values .own-points { color: var(--own-fg); }
+.score-values .enemy-points { color: var(--enemy-fg); }
+.score-diff.positive { color: var(--own-fg); }
+.score-diff.negative { color: var(--enemy-fg); }
 .score-diff.neutral { color: #bbb; }
 
 /* Track score centered inline; total score anchored bottom */
