@@ -8,6 +8,8 @@ let playerCount = 12;
 let viewingTrackIndex = null;
 let team1Color = 'blue';
 let team2Color = 'red';
+let repickNext = false;
+let showTrackContainer = true;
 
 let historyOrder = JSON.parse(localStorage.getItem('mk_track_history') || '[]');
 function saveHistory() { localStorage.setItem('mk_track_history', JSON.stringify(historyOrder)); }
@@ -109,8 +111,9 @@ function applyTeamColorsToCSS(){
 
 function renderHistory(){
     const ul=document.getElementById('track-history'); if(!ul) return; ul.innerHTML='';
-    historyOrder.forEach(idx=>{
+    historyOrder.forEach((idx, i)=>{
         const li=document.createElement('li'); li.className='track-history-item'; li.dataset.trackIndex=idx;
+        const countSpan=document.createElement('span'); countSpan.className='history-count'; countSpan.textContent=String(i+1);
         const img=document.createElement('img'); img.src=`assets/tracks/${englishShortNames[idx]}.png`; img.alt=englishNames[idx];
         const shortSpan=document.createElement('span'); shortSpan.className='short-name'; shortSpan.textContent=englishShortNames[idx];
             let own=0, enemy=0; const dist=pointsDistributions[playerCount];
@@ -121,7 +124,7 @@ function renderHistory(){
             if(own>enemy){ shortSpan.style.color = getComputedStyle(document.documentElement).getPropertyValue('--own-fg') || '#5dade2'; }
             else if(enemy>own){ shortSpan.style.color = getComputedStyle(document.documentElement).getPropertyValue('--enemy-fg') || '#e25d5d'; }
             else { shortSpan.style.color = '#ccc'; }
-        li.appendChild(img); li.appendChild(shortSpan); li.appendChild(scoreSpan);
+        li.appendChild(countSpan); li.appendChild(img); li.appendChild(shortSpan); li.appendChild(scoreSpan);
         li.addEventListener('click',()=>{ viewingTrackIndex = (viewingTrackIndex===idx? null: idx); updateTrackContainer(); renderHistory(); if(_renderButtons) _renderButtons(); });
         if(viewingTrackIndex===idx) li.classList.add('viewing');
         ul.appendChild(li);
@@ -132,9 +135,9 @@ function renderHistory(){
 _renderHistory = renderHistory;
 
 document.addEventListener('DOMContentLoaded', () => {
-    function loadState(){ const state=JSON.parse(localStorage.getItem('mk_tracker_state')||'{}'); return { disabled:Array.isArray(state.disabled)?state.disabled:Array(BUTTON_POSITIONS.length).fill(false), lang:state.lang||'en', showButtons:!!state.showButtons, currentTrackIndex:Number.isInteger(state.currentTrackIndex)?state.currentTrackIndex:null, playerCount:Number.isInteger(state.playerCount)?state.playerCount:12, team1Color: state.team1Color || 'blue', team2Color: state.team2Color || 'red' }; }
-    let { disabled, lang, showButtons, currentTrackIndex: storedTrack, playerCount: storedPlayerCount, team1Color: storedTeam1, team2Color: storedTeam2 } = loadState();
-    currentLang=lang; currentTrackIndex=storedTrack; playerCount=storedPlayerCount;
+    function loadState(){ const state=JSON.parse(localStorage.getItem('mk_tracker_state')||'{}'); return { disabled:Array.isArray(state.disabled)?state.disabled:Array(BUTTON_POSITIONS.length).fill(false), lang:state.lang||'en', showButtons:!!state.showButtons, showTrack: (state.showTrack ?? true), currentTrackIndex:Number.isInteger(state.currentTrackIndex)?state.currentTrackIndex:null, playerCount:Number.isInteger(state.playerCount)?state.playerCount:12, team1Color: state.team1Color || 'blue', team2Color: state.team2Color || 'red' }; }
+    let { disabled, lang, showButtons, showTrack, currentTrackIndex: storedTrack, playerCount: storedPlayerCount, team1Color: storedTeam1, team2Color: storedTeam2 } = loadState();
+    currentLang=lang; currentTrackIndex=storedTrack; playerCount=storedPlayerCount; showTrackContainer = !!showTrack;
     team1Color=storedTeam1; team2Color=storedTeam2; applyTeamColorsToCSS();
     let mapNamesArr=getMapNames(); let cupNamesArr=getCupNames();
 
@@ -159,8 +162,23 @@ document.addEventListener('DOMContentLoaded', () => {
     _renderTableSelectionOnly = renderTableSelectionOnly;
 
     function handleTrackClick(idx){
+        // One-shot repick: always append selected track to history, even if already used
+        if (repickNext) {
+            viewingTrackIndex = null;
+            currentTrackIndex = idx;
+            historyOrder.push(idx);
+            saveHistory();
+            if(!trackPlacements[idx]) ensurePlacementArray(idx);
+            renderHistory(); renderButtons(); renderTableSelectionOnly(); updateTrackContainer(); saveState();
+            // reset repick mode and button label
+            repickNext = false;
+            const repickBtn = document.getElementById('repick-btn'); if (repickBtn) repickBtn.innerText = 'Repick';
+            return;
+        }
+
         viewingTrackIndex=null;
         if(currentTrackIndex===idx){
+            // Default behavior: clicking current track removes it from history
             historyOrder = historyOrder.filter(t=>t!==idx);
             trackPlacements[idx]=null;
             currentTrackIndex=null;
@@ -181,6 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
             playerCount,
             currentTrackIndex,
             showButtons,
+            showTrack: showTrackContainer,
             // keep placeholders for legacy keys
             disabled: [],
         };
@@ -194,6 +213,9 @@ document.addEventListener('DOMContentLoaded', () => {
     _renderPlayerSlots = renderPlayerSlots;
 
     // Initial rendering sequence
+    const trackContainerEl = document.getElementById('track-container');
+    if (trackContainerEl) trackContainerEl.classList.toggle('hidden', !showTrackContainer);
+    const toggleTrackBtnInit = document.getElementById('toggle-track'); if (toggleTrackBtnInit) toggleTrackBtnInit.innerText = showTrackContainer ? 'Hide Track' : 'Show Track';
     renderButtons(); renderTable(); renderHistory(); updateTrackContainer(); renderPlayerSlots(); renderTableSelectionOnly();
 
     // Language change
@@ -222,6 +244,26 @@ document.addEventListener('DOMContentLoaded', () => {
     mapWrapper.addEventListener('wheel',e=>{ e.preventDefault(); const delta=e.deltaY<0?1.1:0.9; scale=Math.max(0.2,Math.min(5, scale*delta)); updateTransform(); }, { passive:false });
 
     document.getElementById('toggle-btns').addEventListener('click',()=>{ showButtons=!showButtons; renderButtons(); renderTableSelectionOnly(); saveState(); });
+    // Toggle track container visibility
+    const toggleTrackBtn = document.getElementById('toggle-track');
+    if (toggleTrackBtn) {
+        toggleTrackBtn.addEventListener('click', ()=>{
+            showTrackContainer = !showTrackContainer;
+            const el = document.getElementById('track-container');
+            if (el) el.classList.toggle('hidden', !showTrackContainer);
+            toggleTrackBtn.innerText = showTrackContainer ? 'Hide Track' : 'Show Track';
+            saveState();
+        });
+    }
+    // Repick control: enable one-shot append of any track to history
+    const repickBtn = document.getElementById('repick-btn');
+    if (repickBtn) {
+        repickBtn.addEventListener('click', ()=>{
+            // Toggle one-shot repick mode on/off
+            repickNext = !repickNext;
+            repickBtn.innerText = repickNext ? 'Repick: pick a track' : 'Repick';
+        });
+    }
     document.getElementById('reset-btn').addEventListener('click',()=>{
         if(!confirm('Reset all war data? This will clear track history, placements, and current selection.')) return;
         viewingTrackIndex=null; currentTrackIndex=null; historyOrder=[]; saveHistory();

@@ -34,6 +34,7 @@ body {
     background: #111;
     display: flex;
     flex-direction: row;
+    flex-wrap: wrap;
     align-items: stretch; /* stretch to align track/map heights */
     justify-content: center;
     gap: 20px;
@@ -107,20 +108,30 @@ body {
     display: none;
 }
 
+
 .zoom-controls {
-    margin: 10px 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 0 0 10px 0;
+    padding: 0;
 }
 
 .zoom-controls button {
     font-size: 1.5em;
-    margin: 0 5px;
-    padding: 5px 15px;
+    height: 40px;
+    margin: 0 !important; /* neutralize inline margins */
+    padding: 0 18px;
     border-radius: 5px;
     border: none;
     background: #444;
     color: #fff;
     cursor: pointer;
     transition: background 0.2s;
+    white-space: nowrap; /* prevent label wrapping */
+    min-width: 130px; /* ensure enough width for labels */
 }
 
 .zoom-controls button:hover {
@@ -153,6 +164,9 @@ body {
 .track-container.empty .track-score { display: none; }
 .track-container.empty .complete-score { display: none; }
 
+/* Allow hiding the entire track container */
+.track-container.hidden { display: none; }
+
 .track-history-col {
     overflow-y: auto;
     padding-right: 6px;
@@ -183,6 +197,12 @@ body {
 .track-history-item img { width: 28px; height: 28px; object-fit: contain; filter: drop-shadow(0 0 2px #000); }
 .track-history-item .short-name { font-weight: bold; min-width: 34px; text-align: center; }
 .track-history-item .history-score { font-weight: bold; font-size: 0.75em; }
+.track-history-item .history-count { 
+    font-weight: 700; 
+    min-width: 20px; 
+    text-align: center; 
+    color: #aaa;
+}
 
 .track-middle {
     display: flex;
@@ -404,9 +424,11 @@ body {
     #map-image {
         min-height: 120px;
     }
+    .zoom-controls { flex-wrap: wrap; }
     .zoom-controls button {
         font-size: 1.2em;
         padding: 4px 10px;
+        min-width: 100px;
     }
     .table-container {
         width: 100vw;
